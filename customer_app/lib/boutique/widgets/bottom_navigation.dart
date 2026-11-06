@@ -291,8 +291,9 @@ class _NavItemState extends State<_NavItem> with TickerProviderStateMixin {
                         fontFamily: 'Vazirmatn',
                         fontSize: 11,
                         height: 1.05,
-                        fontWeight:
-                            widget.selected ? FontWeight.w800 : FontWeight.w700,
+                        fontWeight: widget.selected
+                            ? FontWeight.w800
+                            : FontWeight.w700,
                         color: color,
                       ),
                       child: Text(
@@ -318,8 +319,8 @@ class _NavItemState extends State<_NavItem> with TickerProviderStateMixin {
                       return Transform.translate(
                         offset: Offset(0, lift + bob),
                         child: Transform.scale(
-                          scale: _popScale.value *
-                              (widget.selected ? 1.06 : 1.0),
+                          scale:
+                              _popScale.value * (widget.selected ? 1.06 : 1.0),
                           child: Transform(
                             alignment: Alignment.center,
                             transform: Matrix4.identity()
@@ -465,8 +466,9 @@ class _NavItemState extends State<_NavItem> with TickerProviderStateMixin {
                       fontFamily: 'Vazirmatn',
                       fontSize: 11,
                       height: 1.1,
-                      fontWeight:
-                          widget.selected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: widget.selected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: color,
                     ),
                     child: Text(
@@ -495,24 +497,22 @@ class _GoldDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // easeOutBack overshoots, and Flutter rejects a negative blur while the
+    // shadow is interpolated. easeOutCubic stays inside 0..1.
     return AnimatedContainer(
       duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutBack,
+      curve: Curves.easeOutCubic,
       height: 3,
       width: active ? 16 : 0,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(2),
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: .55)],
-        ),
-        boxShadow: active
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: .55),
-                  blurRadius: 6,
-                ),
-              ]
-            : null,
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: .55)]),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: active ? .55 : 0),
+            blurRadius: active ? 6 : 0,
+          ),
+        ],
       ),
     );
   }

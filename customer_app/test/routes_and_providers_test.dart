@@ -91,10 +91,11 @@ void main() {
         expect(initialFiltered.length, all.length);
 
         // Category filter
-        catalog.selectCategory('جانتاکان');
+        catalog.selectCategory('پێڵاو و جانتا');
         final bags = catalog.filter(all);
+        expect(bags, isNotEmpty);
         for (final item in bags) {
-          expect(item.category, 'جانتاکان');
+          expect(item.category, 'پێڵاو و جانتا');
         }
 
         // Price filter
@@ -107,7 +108,7 @@ void main() {
 
         // Search filter
         catalog.clearFilters();
-        catalog.setQuery('کلاسیک');
+        catalog.setQuery('كراسي');
         final searchRes = catalog.filter(all);
         expect(searchRes.isNotEmpty, isTrue);
       },

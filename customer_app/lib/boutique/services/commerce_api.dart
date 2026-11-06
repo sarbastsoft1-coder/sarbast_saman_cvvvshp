@@ -216,14 +216,14 @@ class PlacedOrderItem {
         ? Map<String, dynamic>.from(json['product'] as Map)
         : const <String, dynamic>{};
     return PlacedOrderItem(
-      productId: (json['product_id'] as num?)?.toInt() ??
+      productId:
+          (json['product_id'] as num?)?.toInt() ??
           (product['id'] as num?)?.toInt() ??
           0,
-      name: product['name']?.toString() ??
-          json['name']?.toString() ??
-          'بەرهەم',
+      name: product['name']?.toString() ?? json['name']?.toString() ?? 'بەرهەم',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      unitPrice: (json['unit_fiat'] as num?)?.toDouble() ??
+      unitPrice:
+          (json['unit_fiat'] as num?)?.toDouble() ??
           (json['price_fiat'] as num?)?.toDouble() ??
           (product['sale_price_fiat'] as num?)?.toDouble() ??
           (product['price_fiat'] as num?)?.toDouble() ??
@@ -333,7 +333,7 @@ class CommerceApi {
       response = await request().timeout(const Duration(seconds: 20));
     } on TimeoutException {
       throw CommerceException('The server took too long to respond.');
-    } catch (_) {
+    } on http.ClientException {
       throw CommerceException(
         'Could not reach the shop server. Check that the backend is running.',
       );

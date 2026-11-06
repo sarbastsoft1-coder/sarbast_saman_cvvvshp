@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:customer_app/boutique/boutique_app.dart';
 import 'package:customer_app/boutique/core/routes/boutique_routes.dart';
 import 'package:customer_app/boutique/features/checkout/checkout_screen.dart';
-import 'package:customer_app/boutique/features/orders/order_tracking_screen.dart';
+import 'package:customer_app/boutique/features/cart/cart_screen.dart';
+import 'package:customer_app/boutique/features/orders/order_confirmed_screen.dart';
 import 'package:customer_app/boutique/features/search/search_screen.dart';
 import 'package:customer_app/boutique/features/roni/splash_screen.dart';
-import 'package:customer_app/boutique/features/orders/orders_screen.dart';
 import 'package:customer_app/boutique/features/products/product_details_screen.dart';
 import 'package:customer_app/boutique/models/coupon.dart';
 import 'package:customer_app/boutique/models/product.dart';
@@ -48,29 +48,31 @@ void main() {
     expect(cart.applyCouponCode(' freeship ').$1, isTrue);
     expect(cart.discountAmount, 0);
     expect(cart.effectiveDeliveryFee, 0);
-    expect(cart.total, 45000);
+    expect(cart.total, sampleProducts.first.price);
     cart.clear();
     expect(cart.appliedCoupon, isNull);
     cart.add(sampleProducts.first);
-    expect(cart.total, 48000);
+    expect(cart.total, sampleProducts.first.price + CartProvider.deliveryFee);
   });
 
   test(
     'variants stay separate, quantity cannot be negative, discount revalidates',
     () {
       final cart = CartProvider();
-      final product = sampleProducts[1];
-      cart.add(product, size: 'S', qty: 2);
-      cart.add(product, size: 'M');
+      // A sized product whose two units clear the coupon minimum and one unit
+      // does not, so dropping back to a single unit must clear the coupon.
+      final product = sampleProducts[9];
+      cart.add(product, size: '٢ ساڵ', qty: 2);
+      cart.add(product, size: '٤ ساڵ');
       expect(cart.lines.length, 2);
       expect(cart.applyCouponCode('WELCOME20').$1, isTrue);
       cart.remove(cart.lines.last.key);
       cart.decrement(cart.lines.first.key);
-      expect(cart.subtotal, 38000);
+      expect(cart.subtotal, product.price);
       expect(cart.appliedCoupon, isNull);
       cart.add(product, qty: -3);
       expect(cart.itemCount, 1);
-      cart.add(product, qty: 1000, size: 'S');
+      cart.add(product, qty: 1000, size: '٢ ساڵ');
       expect(cart.lines.single.quantity, 99);
     },
   );
@@ -89,7 +91,7 @@ void main() {
       expiresAt: DateTime(2020),
     );
     expect(cart.applyCoupon(coupon).$1, isFalse);
-    expect(cart.total, 48000);
+    expect(cart.total, sampleProducts.first.price + CartProvider.deliveryFee);
   });
 
   test(
@@ -97,7 +99,12 @@ void main() {
     () async {
       final prefs = await SharedPreferences.getInstance();
       final cart = CartProvider(preferences: prefs)
-        ..add(sampleProducts.first, size: 'L', color: Colors.black, qty: 2);
+        ..add(
+          sampleProducts.first,
+          size: '٣٢ سم',
+          color: const Color(0xFF2B2F36),
+          qty: 2,
+        );
       cart.applyCouponCode('WELCOME20');
       final wishlist = WishlistProvider(preferences: prefs)
         ..toggle(sampleProducts[2]);
@@ -117,7 +124,7 @@ void main() {
         reviews.pendingSave,
       ]);
       final restored = CartProvider(preferences: prefs);
-      expect(restored.lines.single.size, 'L');
+      expect(restored.lines.single.size, '٣٢ سم');
       expect(restored.lines.single.quantity, 2);
       expect(restored.total, cart.total);
       expect(restored.appliedCoupon?.code, 'WELCOME20');
@@ -140,7 +147,8 @@ void main() {
     'orders preserve contact, variants, discount and delivery after a restart',
     () async {
       final prefs = await SharedPreferences.getInstance();
-      final cart = CartProvider()..add(sampleProducts.first, qty: 2, size: 'L');
+      final cart = CartProvider()
+        ..add(sampleProducts.first, qty: 2, size: '٢٨ سم');
       cart.applyCouponCode('FREESHIP');
       final orders = OrdersProvider(preferences: prefs);
       final order = orders.addOrder(
@@ -155,10 +163,10 @@ void main() {
       cart.clear();
       await orders.pendingSave;
       final restored = OrdersProvider(preferences: prefs).byId(order.id)!;
-      expect(restored.total, 90000);
+      expect(restored.total, sampleProducts.first.price * 2);
       expect(restored.deliveryFee, 0);
       expect(restored.phone, '07501234567');
-      expect(restored.items.single.size, 'L');
+      expect(restored.items.single.size, '٢٨ سم');
       expect(restored.items.single.quantity, 2);
       expect(restored.trackingStep, 0);
       expect(restored.courierPhone, isEmpty);
@@ -234,8 +242,8 @@ void main() {
   );
 
   test('catalog normalizes Arabic and Kurdish letter forms', () {
-    final catalog = CatalogProvider()..setQuery('كلاسيك');
-    expect(catalog.filter(sampleProducts).map((p) => p.id), contains(1));
+    final catalog = CatalogProvider()..setQuery('كراسي');
+    expect(catalog.filter(sampleProducts).map((p) => p.id), contains(3));
     catalog.selectCategory('پێڵاو');
     expect(catalog.filter(sampleProducts), isEmpty);
     catalog.clearFilters();
@@ -269,13 +277,17 @@ void main() {
   testWidgets('product selections reach the cart and the bag shortcut works', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(900, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       BoutiqueApp(catalogLoader: () async => sampleProducts),
     );
     await tester.pumpAndSettle();
     final context = tester.element(find.byType(BoutiqueMainShell));
     final cart = context.read<CartProvider>();
-    Navigator.of(context).pushNamed('/product-details?id=2');
+    Navigator.of(context).pushNamed('/product-details?id=3');
     await tester.pumpAndSettle();
     final scrollable = find
         .descendant(
@@ -284,16 +296,24 @@ void main() {
         )
         .first;
     await tester.scrollUntilVisible(
+      find.byKey(const Key('color-1')),
+      200,
+      scrollable: scrollable,
+    );
+    await tester.tap(find.byKey(const Key('color-1')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
       find.byKey(const Key('size-L')),
       200,
       scrollable: scrollable,
     );
     await tester.tap(find.byKey(const Key('size-L')));
-    await tester.tap(find.byKey(const Key('color-1')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('add-selected-product')));
     await tester.tap(find.byKey(const Key('add-selected-product')));
     await tester.pumpAndSettle();
     expect(cart.lines.single.size, 'L');
-    expect(cart.lines.single.color, sampleProducts[1].availableColors[1]);
+    expect(cart.lines.single.color, sampleProducts[2].availableColors[1]);
     await tester.tap(find.byTooltip('سەبەتەکەم'));
     await tester.pumpAndSettle();
     expect(find.byType(ProductDetailsScreen), findsNothing);
@@ -404,7 +424,7 @@ void main() {
       await tester.pumpAndSettle();
       final context = tester.element(find.byType(BoutiqueMainShell));
       final cart = context.read<CartProvider>()
-        ..add(sampleProducts.first, size: 'L', qty: 2);
+        ..add(sampleProducts.first, size: '٢٨ سم', qty: 2);
       cart.applyCouponCode('FREESHIP');
       final orders = context.read<OrdersProvider>();
       final before = orders.orders.length;
@@ -428,11 +448,11 @@ void main() {
       await tester.tap(find.byKey(const Key('confirm-order')));
       await tester.pumpAndSettle();
       expect(find.byType(CheckoutScreen), findsNothing);
-      expect(find.byType(OrderTrackingScreen), findsOneWidget);
+      expect(find.byType(OrderConfirmedScreen), findsOneWidget);
       expect(orders.orders.length, before + 1);
       expect(orders.orders.first.phone, '07501234567');
-      expect(orders.orders.first.items.single.size, 'L');
-      expect(orders.orders.first.total, 90000);
+      expect(orders.orders.first.items.single.size, '٢٨ سم');
+      expect(orders.orders.first.total, sampleProducts.first.price * 2);
       expect(cart.isEmpty, isTrue);
       expect(tester.takeException(), isNull);
     },
@@ -451,12 +471,12 @@ void main() {
       Navigator.of(context).pushNamed('/search');
       await tester.pumpAndSettle();
       expect(find.byType(SearchScreen), findsOneWidget);
-      await tester.tap(find.widgetWithText(ChoiceChip, 'جانتاکان'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'پێڵاو و جانتا'));
       await tester.pumpAndSettle();
       expect(
         tester
             .widgetList<SearchResultRow>(find.byType(SearchResultRow))
-            .every((w) => w.product.category == 'جانتاکان'),
+            .every((w) => w.product.category == 'پێڵاو و جانتا'),
         isTrue,
       );
       expect(find.byType(SearchResultRow), findsWidgets);
@@ -525,10 +545,10 @@ void main() {
     expect(find.byKey(const Key('nav-0')), findsOneWidget);
     expect(find.byKey(const Key('nav-4')), findsOneWidget);
 
-    // Orders is tab 3 in the Roni information architecture.
+    // Tab order is Home, Categories, Ronix, Cart, Me.
     await tester.tap(find.byKey(const Key('nav-3')));
     await tester.pumpAndSettle();
-    expect(find.byType(OrdersScreen), findsOneWidget);
+    expect(find.byType(CartScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

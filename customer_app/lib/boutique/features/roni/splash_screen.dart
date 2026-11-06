@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,8 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _ambient;
   late final AnimationController _enter;
   late final AnimationController _shine;
+  Timer? _introShine;
+  Timer? _pressReset;
   Offset _parallax = Offset.zero;
   bool _pressedLogo = false;
 
@@ -43,13 +46,15 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    Future<void>.delayed(const Duration(milliseconds: 700), () {
+    _introShine = Timer(const Duration(milliseconds: 700), () {
       if (mounted) _shine.forward(from: 0);
     });
   }
 
   @override
   void dispose() {
+    _introShine?.cancel();
+    _pressReset?.cancel();
     _ambient.dispose();
     _enter.dispose();
     _shine.dispose();
@@ -58,8 +63,18 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _goStart() {
     HapticFeedback.lightImpact();
-    (widget.onGetStarted ??
-        () => Navigator.of(context).pushReplacementNamed(BoutiqueRoutes.lang))();
+    if (widget.onGetStarted != null) {
+      widget.onGetStarted!();
+      return;
+    }
+    // The splash is shown over the store. Dismiss it back to that store
+    // instead of replacing it with the language step.
+    final nav = Navigator.of(context);
+    if (nav.canPop()) {
+      nav.pop();
+      return;
+    }
+    nav.pushReplacementNamed(BoutiqueRoutes.home);
   }
 
   void _goLogin() {
@@ -69,14 +84,17 @@ class _SplashScreenState extends State<SplashScreen>
   void _onPointer(Offset local, Size size) {
     final dx = ((local.dx / size.width) - 0.5) * 2;
     final dy = ((local.dy / size.height) - 0.5) * 2;
-    setState(() => _parallax = Offset(dx.clamp(-1.0, 1.0), dy.clamp(-1.0, 1.0)));
+    setState(
+      () => _parallax = Offset(dx.clamp(-1.0, 1.0), dy.clamp(-1.0, 1.0)),
+    );
   }
 
   void _burstShine() {
     HapticFeedback.selectionClick();
     setState(() => _pressedLogo = true);
     _shine.forward(from: 0);
-    Future<void>.delayed(const Duration(milliseconds: 140), () {
+    _pressReset?.cancel();
+    _pressReset = Timer(const Duration(milliseconds: 140), () {
       if (mounted) setState(() => _pressedLogo = false);
     });
   }
@@ -138,136 +156,185 @@ class _SplashScreenState extends State<SplashScreen>
                           parent: _enter,
                           curve: Curves.easeOutCubic,
                         ).value;
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
-                          child: Column(
-                            children: [
-                              const Spacer(flex: 2),
-                              Opacity(
-                                opacity: e.clamp(0, 1),
-                                child: Transform.translate(
-                                  offset: Offset(0, (1 - e) * 28),
-                                  child: _BrandMark(
-                                    shine: _shine.value,
-                                    pressed: _pressedLogo,
-                                    onTap: _burstShine,
-                                  ),
+                        return LayoutBuilder(
+                          builder: (context, box) {
+                            return SingleChildScrollView(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: box.maxHeight,
                                 ),
-                              ),
-                              const SizedBox(height: 28),
-                              Opacity(
-                                opacity: ((e - 0.25) / 0.75).clamp(0, 1),
-                                child: Transform.translate(
-                                  offset: Offset(
-                                    0,
-                                    (1 - ((e - 0.25) / 0.75).clamp(0, 1)) * 16,
-                                  ),
-                                  child: const Column(
-                                    children: [
-                                      Text(
-                                        'بە دڵی ئارام بکڕە',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: BoutiqueTokens.fontFamily,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                      SizedBox(height: 12),
-                                      Text(
-                                        'بازاڕی فرۆشیارە پشکنراوەکانی کوردستان.\nسەرەتا ببینە، دواتر پارە بدە.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: BoutiqueTokens.fontFamily,
-                                          fontSize: 14,
-                                          height: 1.9,
-                                          color: Color(0xFFB7A98E),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const Spacer(flex: 3),
-                              Opacity(
-                                opacity: ((e - 0.45) / 0.55).clamp(0, 1),
-                                child: Column(
-                                  children: [
-                                    _SwipeHint(pulse: _ambient),
-                                    const SizedBox(height: 18),
-                                    RoniPressable(
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: 54,
-                                        child: DecoratedBox(
-                                          decoration: BoxDecoration(
-                                            gradient: BoutiqueColors.goldGradient,
-                                            borderRadius: BorderRadius.circular(
-                                              BoutiqueTokens.radiusMd,
+                                child: IntrinsicHeight(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      24,
+                                      12,
+                                      24,
+                                      28,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        const Spacer(flex: 2),
+                                        Opacity(
+                                          opacity: e.clamp(0, 1),
+                                          child: Transform.translate(
+                                            offset: Offset(0, (1 - e) * 28),
+                                            child: _BrandMark(
+                                              shine: _shine.value,
+                                              pressed: _pressedLogo,
+                                              onTap: _burstShine,
                                             ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: BoutiqueColors.goldBright
-                                                    .withValues(alpha: 0.28),
-                                                blurRadius: 24,
-                                                offset: const Offset(0, 10),
-                                              ),
-                                            ],
                                           ),
-                                          child: Material(
-                                            color: Colors.transparent,
-                                            child: InkWell(
-                                              onTap: _goStart,
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                BoutiqueTokens.radiusMd,
-                                              ),
-                                              child: const Center(
-                                                child: Text(
-                                                  'دەست پێبکە',
+                                        ),
+                                        const SizedBox(height: 28),
+                                        Opacity(
+                                          opacity: ((e - 0.25) / 0.75).clamp(
+                                            0,
+                                            1,
+                                          ),
+                                          child: Transform.translate(
+                                            offset: Offset(
+                                              0,
+                                              (1 -
+                                                      ((e - 0.25) / 0.75).clamp(
+                                                        0,
+                                                        1,
+                                                      )) *
+                                                  16,
+                                            ),
+                                            child: const Column(
+                                              children: [
+                                                Text(
+                                                  'بە دڵی ئارام بکڕە',
+                                                  textAlign: TextAlign.center,
                                                   style: TextStyle(
-                                                    fontFamily:
-                                                        BoutiqueTokens.fontFamily,
-                                                    fontSize: 16,
+                                                    fontFamily: BoutiqueTokens
+                                                        .fontFamily,
+                                                    fontSize: 24,
                                                     fontWeight: FontWeight.w800,
-                                                    color: BoutiqueColors.onGold,
+                                                    color: Colors.white,
+                                                    height: 1.35,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 12),
+                                                Text(
+                                                  'بازاڕی فرۆشیارە پشکنراوەکانی کوردستان.\nسەرەتا ببینە، دواتر پارە بدە.',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontFamily: BoutiqueTokens
+                                                        .fontFamily,
+                                                    fontSize: 14,
+                                                    height: 1.9,
+                                                    color: Color(0xFFB7A98E),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const Spacer(flex: 3),
+                                        Opacity(
+                                          opacity: ((e - 0.45) / 0.55).clamp(
+                                            0,
+                                            1,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              _SwipeHint(pulse: _ambient),
+                                              const SizedBox(height: 18),
+                                              RoniPressable(
+                                                child: SizedBox(
+                                                  width: double.infinity,
+                                                  height: 54,
+                                                  child: DecoratedBox(
+                                                    decoration: BoxDecoration(
+                                                      gradient: BoutiqueColors
+                                                          .goldGradient,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            BoutiqueTokens
+                                                                .radiusMd,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: BoutiqueColors
+                                                              .goldBright
+                                                              .withValues(
+                                                                alpha: 0.28,
+                                                              ),
+                                                          blurRadius: 24,
+                                                          offset: const Offset(
+                                                            0,
+                                                            10,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        onTap: _goStart,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              BoutiqueTokens
+                                                                  .radiusMd,
+                                                            ),
+                                                        child: const Center(
+                                                          child: Text(
+                                                            'دەست پێبکە',
+                                                            style: TextStyle(
+                                                              fontFamily:
+                                                                  BoutiqueTokens
+                                                                      .fontFamily,
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              color:
+                                                                  BoutiqueColors
+                                                                      .onGold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
+                                              const SizedBox(height: 10),
+                                              TextButton(
+                                                onPressed: _goLogin,
+                                                child: const Text(
+                                                  'هەر حسابێکت هەیە؟ وەرچێ',
+                                                  style: TextStyle(
+                                                    fontFamily: BoutiqueTokens
+                                                        .fontFamily,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        BoutiqueColors.muted2,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              const Text(
+                                                'هەولێر · کوردستان',
+                                                style: TextStyle(
+                                                  fontFamily:
+                                                      BoutiqueTokens.fontFamily,
+                                                  fontSize: 11.5,
+                                                  color: Color(0xFF7A7263),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 10),
-                                    TextButton(
-                                      onPressed: _goLogin,
-                                      child: const Text(
-                                        'هەر حسابێکت هەیە؟ وەرچێ',
-                                        style: TextStyle(
-                                          fontFamily: BoutiqueTokens.fontFamily,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: BoutiqueColors.muted2,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    const Text(
-                                      'هەولێر · کوردستان',
-                                      style: TextStyle(
-                                        fontFamily: BoutiqueTokens.fontFamily,
-                                        fontSize: 11.5,
-                                        color: Color(0xFF7A7263),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -441,16 +508,14 @@ class _SplashAtmospherePainter extends CustomPainter {
       const Color(0xFF8A6416).withValues(alpha: 0.22),
     );
     orb(
-      Offset(
-        cx + 90 + math.cos(t * math.pi * 2 + 1.2) * 20,
-        cy - 60,
-      ),
+      Offset(cx + 90 + math.cos(t * math.pi * 2 + 1.2) * 20, cy - 60),
       size.width * 0.2,
       BoutiqueColors.logoMark.withValues(alpha: 0.12),
     );
 
     // Fine drifting sparkles.
-    final spark = Paint()..color = BoutiqueColors.goldBright.withValues(alpha: 0.35);
+    final spark = Paint()
+      ..color = BoutiqueColors.goldBright.withValues(alpha: 0.35);
     for (var i = 0; i < 14; i++) {
       final a = (t + i / 14) * math.pi * 2;
       final r = 60.0 + (i % 5) * 28.0;

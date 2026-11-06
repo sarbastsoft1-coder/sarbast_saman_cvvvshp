@@ -15,6 +15,7 @@ import 'providers/auction_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/challenges_provider.dart';
+import 'providers/chats_provider.dart';
 import 'providers/checkout_provider.dart';
 import 'providers/coins_provider.dart';
 import 'providers/invite_provider.dart';
@@ -144,6 +145,7 @@ class _BoutiqueAppState extends State<BoutiqueApp> {
         ChangeNotifierProvider<CoinsProvider>.value(value: _coins),
         ChangeNotifierProvider<AuctionProvider>.value(value: _auction),
         ChangeNotifierProvider(create: (_) => ChallengesProvider()),
+        ChangeNotifierProvider(create: (_) => ChatsProvider()),
         ChangeNotifierProvider(create: (_) => InviteProvider()),
         ChangeNotifierProvider<RoniProvider>.value(value: _roni),
         ChangeNotifierProvider<CartProvider>.value(value: _cart),
@@ -206,7 +208,9 @@ class _BoutiqueAppState extends State<BoutiqueApp> {
                   statusBarIconBrightness: isDark
                       ? Brightness.light
                       : Brightness.dark,
-                  statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+                  statusBarBrightness: isDark
+                      ? Brightness.dark
+                      : Brightness.light,
                   systemNavigationBarColor: p.bg,
                   systemNavigationBarIconBrightness: isDark
                       ? Brightness.light
@@ -229,7 +233,10 @@ class _BoutiqueAppState extends State<BoutiqueApp> {
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 1280),
-                              child: ColoredBox(color: p.surface, child: child!),
+                              child: ColoredBox(
+                                color: p.surface,
+                                child: child!,
+                              ),
                             ),
                           ),
                         );

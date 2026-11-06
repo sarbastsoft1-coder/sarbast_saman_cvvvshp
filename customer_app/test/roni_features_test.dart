@@ -14,6 +14,12 @@ import 'package:customer_app/boutique/services/commerce_api.dart';
 /// rewards catalogue all come from the server, so the tests drive them
 /// through a mocked transport and assert the parsing, the money maths and the
 /// error paths rather than a local-only economy.
+http.Response utf8Response(String body, int statusCode) => http.Response.bytes(
+  utf8.encode(body),
+  statusCode,
+  headers: const {'content-type': 'application/json; charset=utf-8'},
+);
+
 void main() {
   CommerceApi apiWith(
     Future<http.Response> Function(http.Request request) handler, {
@@ -27,84 +33,93 @@ void main() {
   }
 
   group('CoinsProvider', () {
-    test('parses the wallet payload into balance, earnings and history', () async {
-      final api = apiWith((request) async {
-        expect(request.url.path, '/api/v1/customer/ronix');
-        return http.Response(
-          jsonEncode({
-            'data': {
-              'balance': 4200,
-              'earned': 5000,
-              'spent': 800,
-              'transactions': [
-                {
-                  'description': 'پاشەکەوتکردنی دەزگا',
-                  'amount': 250,
-                  'created_at': '2026-10-01T10:00:00Z',
-                },
-                {
-                  'type': 'spend',
-                  'amount': -100,
-                  'created_at': '2026-10-02T10:00:00Z',
-                },
-              ],
-              'rewards': [
-                {'id': 1, 'title': 'دیارییەکانیان'},
-              ],
-              'redemptions': <Map<String, dynamic>>[],
-              'policy': {'min_redeem': 500},
-            },
-          }),
-          200,
-        );
-      });
-      final provider = CoinsProvider(api: api);
+    test(
+      'parses the wallet payload into balance, earnings and history',
+      () async {
+        final api = apiWith((request) async {
+          expect(request.url.path, '/api/v1/customer/ronix');
+          return utf8Response(
+            jsonEncode({
+              'data': {
+                'balance': 4200,
+                'earned': 5000,
+                'spent': 800,
+                'transactions': [
+                  {
+                    'description': 'پاشەکەوتکردنی دەزگا',
+                    'amount': 250,
+                    'created_at': '2026-10-01T10:00:00Z',
+                  },
+                  {
+                    'type': 'spend',
+                    'amount': -100,
+                    'created_at': '2026-10-02T10:00:00Z',
+                  },
+                ],
+                'rewards': [
+                  {'id': 1, 'title': 'دیارییەکانیان'},
+                ],
+                'redemptions': <Map<String, dynamic>>[],
+                'policy': {'min_redeem': 500},
+              },
+            }),
+            200,
+          );
+        });
+        final provider = CoinsProvider(api: api);
 
-      await provider.refresh();
+        await provider.refresh();
 
-      expect(provider.error, isNull);
-      expect(provider.balance, 4200);
-      expect(provider.earned, 5000);
-      expect(provider.spent, 800);
-      expect(provider.history, hasLength(2));
-      expect(provider.history.first.label, 'پاشەکەوتکردنی دەزگا');
-      expect(provider.history.first.amount, 250);
-      // A transaction with no description falls back to its type.
-      expect(provider.history.last.label, 'spend');
-      expect(provider.rewards, hasLength(1));
-      expect(provider.policy['min_redeem'], 500);
-      expect(provider.loading, isFalse);
-    });
+        expect(provider.error, isNull);
+        expect(provider.balance, 4200);
+        expect(provider.earned, 5000);
+        expect(provider.spent, 800);
+        expect(provider.history, hasLength(2));
+        expect(provider.history.first.label, 'پاشەکەوتکردنی دەزگا');
+        expect(provider.history.first.amount, 250);
+        // A transaction with no description falls back to its type.
+        expect(provider.history.last.label, 'spend');
+        expect(provider.rewards, hasLength(1));
+        expect(provider.policy['min_redeem'], 500);
+        expect(provider.loading, isFalse);
+      },
+    );
 
-    test('redeems a reward against the reward endpoint and refreshes', () async {
-      final posted = <String>[];
-      final api = apiWith((request) async {
-        if (request.method == 'POST') {
-          posted.add(request.url.path);
-          return http.Response(jsonEncode({'data': true}), 200);
-        }
-        return http.Response(
-          jsonEncode({
-            'data': {'balance': 4300, 'transactions': <Map<String, dynamic>>[]},
-          }),
-          200,
-        );
-      });
-      final provider = CoinsProvider(api: api);
+    test(
+      'redeems a reward against the reward endpoint and refreshes',
+      () async {
+        final posted = <String>[];
+        final api = apiWith((request) async {
+          if (request.method == 'POST') {
+            posted.add(request.url.path);
+            return utf8Response(jsonEncode({'data': true}), 200);
+          }
+          return utf8Response(
+            jsonEncode({
+              'data': {
+                'balance': 4300,
+                'transactions': <Map<String, dynamic>>[],
+              },
+            }),
+            200,
+          );
+        });
+        final provider = CoinsProvider(api: api);
 
-      final ok = await provider.redeemReward(7);
+        final ok = await provider.redeemReward(7);
 
-      expect(ok, isTrue);
-      expect(posted, ['/api/v1/customer/rewards/7/redeem']);
-      expect(provider.balance, 4300);
-      expect(provider.busy, isFalse);
-    });
+        expect(ok, isTrue);
+        expect(posted, ['/api/v1/customer/rewards/7/redeem']);
+        expect(provider.balance, 4300);
+        expect(provider.busy, isFalse);
+      },
+    );
 
     test('surfaces a server failure instead of swallowing it', () async {
-      final api = apiWith((request) async => http.Response(
-            jsonEncode({'message': 'دەرگەیشتن نەکرا'}),
-            422,
-          ));
+      final api = apiWith(
+        (request) async =>
+            utf8Response(jsonEncode({'message': 'دەرگەیشتن نەکرا'}), 422),
+      );
       final provider = CoinsProvider(api: api);
 
       await provider.refresh();
@@ -114,17 +129,19 @@ void main() {
     });
 
     test('reset clears the wallet', () async {
-      final api = apiWith((request) async => http.Response(
-            jsonEncode({
-              'data': {
-                'balance': 99,
-                'transactions': [
-                  {'description': 'x', 'amount': 1},
-                ],
-              },
-            }),
-            200,
-          ));
+      final api = apiWith(
+        (request) async => utf8Response(
+          jsonEncode({
+            'data': {
+              'balance': 99,
+              'transactions': [
+                {'description': 'x', 'amount': 1},
+              ],
+            },
+          }),
+          200,
+        ),
+      );
       final provider = CoinsProvider(api: api);
       await provider.refresh();
       expect(provider.balance, 99);
@@ -142,7 +159,7 @@ void main() {
     test('selects a live lot and computes the next minimum bid', () async {
       final api = apiWith((request) async {
         if (request.url.path.endsWith('/3')) {
-          return http.Response(
+          return utf8Response(
             jsonEncode({
               'data': {
                 'auction': {
@@ -162,7 +179,7 @@ void main() {
             200,
           );
         }
-        return http.Response(
+        return utf8Response(
           jsonEncode({
             'data': [
               {
@@ -194,8 +211,11 @@ void main() {
       expect(provider.remainingLabel, contains('h'));
     });
 
-    test('an expired lot is not live and never counts down below zero', () async {
-      final api = apiWith((request) async => http.Response(
+    test(
+      'an expired lot is not live and never counts down below zero',
+      () async {
+        final api = apiWith(
+          (request) async => utf8Response(
             jsonEncode({
               'data': [
                 {
@@ -208,28 +228,36 @@ void main() {
               ],
             }),
             200,
-          ));
-      final provider = AuctionProvider(api: api);
+          ),
+        );
+        final provider = AuctionProvider(api: api);
 
-      await provider.refresh();
+        await provider.refresh();
 
-      expect(provider.isLive, isFalse);
-      expect(provider.remaining, Duration.zero);
-    });
+        expect(provider.isLive, isFalse);
+        expect(provider.remaining, Duration.zero);
+      },
+    );
 
-    test('bid posts the amount and refuses to bid without a selection', () async {
-      final paths = <String>[];
-      final api = apiWith((request) async {
-        paths.add('${request.method} ${request.url.path}');
-        if (request.method == 'POST') {
-          return http.Response(jsonEncode({'data': true}), 200);
-        }
-        return http.Response(jsonEncode({'data': <Map<String, dynamic>>[]}), 200);
-      });
-      final provider = AuctionProvider(api: api);
+    test(
+      'bid posts the amount and refuses to bid without a selection',
+      () async {
+        final paths = <String>[];
+        final api = apiWith((request) async {
+          paths.add('${request.method} ${request.url.path}');
+          if (request.method == 'POST') {
+            return utf8Response(jsonEncode({'data': true}), 200);
+          }
+          return utf8Response(
+            jsonEncode({'data': <Map<String, dynamic>>[]}),
+            200,
+          );
+        });
+        final provider = AuctionProvider(api: api);
 
-      expect(await provider.bid(500), isFalse);
-      expect(paths, isEmpty);
-    });
+        expect(await provider.bid(500), isFalse);
+        expect(paths, isEmpty);
+      },
+    );
   });
 }
