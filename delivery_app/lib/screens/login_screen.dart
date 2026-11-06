@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../main.dart'; // For DeliveryTheme
 import '../services/api_service.dart';
+import '../widgets/delivery_animations.dart';
 import 'delivery_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -63,7 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: Card(
+          child: FadeSlideIn(
+            child: Card(
             margin: const EdgeInsets.all(24),
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -156,6 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+          ),
           ),
         ),
       ),

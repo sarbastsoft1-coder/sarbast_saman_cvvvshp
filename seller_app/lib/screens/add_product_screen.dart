@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../app/theme.dart';
 import '../services/api_service.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/page_transitions.dart';
 import '../widgets/product_media_picker.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -126,7 +127,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('بەرهەمی نوێ')),
-      body: Form(
+      body: FadeSlideIn(
+        child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -214,6 +216,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

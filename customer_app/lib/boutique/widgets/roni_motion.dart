@@ -35,14 +35,22 @@ class _RoniFadeSlideState extends State<RoniFadeSlide>
     begin: widget.offset,
     end: Offset.zero,
   ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  Timer? _delay;
+  bool _started = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller.value = 1;
+      return;
+    }
     if (widget.delay == Duration.zero) {
       _controller.forward();
     } else {
-      Future<void>.delayed(widget.delay, () {
+      _delay = Timer(widget.delay, () {
         if (mounted) _controller.forward();
       });
     }
@@ -50,6 +58,7 @@ class _RoniFadeSlideState extends State<RoniFadeSlide>
 
   @override
   void dispose() {
+    _delay?.cancel();
     _controller.dispose();
     super.dispose();
   }
