@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Roni Seller · design tokens</title>
+<style>
+:root{
+ --pri:#2F95FF;--pri-d:#1C7FE6;--pri-50:rgba(71,165,255,.16);--pri-25:rgba(71,165,255,.08);--pg-2:#8FD0FF;
+ --btn:#0A0A0A;--btn-ink:#fff;--dk:#0A0A0A;--dk-2:#23282D;--on-dk:#F3F6F9;--on-dk-mut:#A7B0B8;
+ --acc:#FF8F00;--acc-50:#FFF1DE;--acc-ink:#A85A00;--hi:#47A5FF;--hi-ink:#fff;
+ --ink:#0A0A0A;--ink-3:#30353A;--muted:#4C5055;--muted-2:#666C72;--line:rgba(76,80,85,.12);--line-2:rgba(76,80,85,.22);
+ --bg:#EAF3FF;--card:rgba(255,255,255,.72);--card-bd:rgba(255,255,255,.95);--sh:0 8px 24px rgba(30,100,180,.10);
+ --ok:#0E7C3E;--warn:#FF8F00;--bad:#E5484D;--info:#1F6FD1;
+ --r-btn:1000px;--r-card:24px;
+ --cover-a:#BFDDFF;--cover-b:#7DBBFF;
+ --stage-grad:linear-gradient(180deg,#9ECDFF 0%,#C9E3FF 26%,#E6F2FF 55%,#F4F9FF 100%);
+ --tab-on:#1769D1;--pay-grad:linear-gradient(135deg,#47A5FF 0%,#2F7FE0 60%,#1D5FB8 100%);
+}
+body{font-family:'Noto Sans Arabic',Tahoma,sans-serif;background:var(--stage-grad);padding:24px;color:var(--ink)}
+.swatch{display:inline-flex;align-items:center;gap:8px;margin:6px 8px 6px 0;padding:8px 12px;border-radius:16px;background:var(--card);border:1px solid var(--card-bd)}
+.dot{width:20px;height:20px;border-radius:8px}
+h1{font-weight:800} code{font-family:Poppins,monospace;font-size:12px}
+.tabs{display:flex;gap:8px;margin-top:16px;padding:8px;border-radius:32px;background:rgba(255,255,255,.8);border:1px solid #fff;max-width:390px}
+.tabs span{flex:1;height:48px;border-radius:28px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+.tabs span.on{flex:2.3;background:var(--tab-on);color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<h1>Roni · ئەپی فرۆشیار · tokens</h1>
+<p>Mapped into Flutter <code>seller_app/lib/app/theme.dart</code>.</p>
+<div>
+ <span class="swatch"><i class="dot" style="background:#2F95FF"></i><code>--pri / terracotta</code></span>
+ <span class="swatch"><i class="dot" style="background:#0A0A0A"></i><code>--btn / forest</code></span>
+ <span class="swatch"><i class="dot" style="background:#FF8F00"></i><code>--acc / gold</code></span>
+ <span class="swatch"><i class="dot" style="background:#0E7C3E"></i><code>--ok</code></span>
+ <span class="swatch"><i class="dot" style="background:#EAF3FF"></i><code>--bg / cream</code></span>
+</div>
+<div class="tabs">
+ <span class="on">سەرەکی</span><span>داواکاری</span><span>بەرهەم</span><span>پارە</span><span>زیاتر</span>
+</div>
+</body>
+</html>

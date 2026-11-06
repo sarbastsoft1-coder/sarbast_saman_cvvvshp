@@ -1,0 +1,42 @@
+# Secrets
+.env
+.env.*
+!.env.example
+**/auth.json
+**/*.pem
+**/*.key
+
+# Dependencies & builds
+**/node_modules/
+**/vendor/
+**/build/
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+**/coverage/
+backend/public/build/
+backend/public/hot
+backend/public/storage
+backend/storage/*.key
+backend/storage/pail
+
+# Local / generated
+**/__pycache__/
+*.pyc
+*.log
+.phpunit.result.cache
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.fleet/
+.zed/
+
+# Large / backup folders (not source of truth)
+.customer-completion-backup-*/
+.customer-review-backup-*/
+.roni-implementation-backup/
+.roni-reskin-backup/
+prepared-media/
+videos/
+.claude/
+roni_web_prototype/node_modules/

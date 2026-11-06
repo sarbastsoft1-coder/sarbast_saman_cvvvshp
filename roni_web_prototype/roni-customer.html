@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roni · ئەپی کڕیار — green design tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEEE9;--app:#FFFFFF;--surface:#F4F5F2;--line:#E6E8E3;--line2:#D5D9D3;
+  --ink:#14201A;--mut:#5F6B63;--pri:#0B6B1F;--pri-ink:#0B4F18;--pri-50:#E7F2E3;
+  --logo:#0A4A27;--heart:#C8323E;--mark:#FF7006;
+  --f-body:'Noto Sans Arabic',Tahoma,sans-serif;
+  --f-lat:Poppins,'Noto Sans Arabic',sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--f-body);background:var(--bg);color:var(--ink);padding:28px;line-height:1.7}
+h1{font-family:var(--f-lat);font-size:28px;margin:0 0 8px;color:var(--logo)}
+.mut{color:var(--mut);font-size:14px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin:24px 0}
+.sw{border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+.sw i{display:block;height:64px}
+.sw span{display:block;padding:8px 10px;font-size:12px}
+.btn{height:52px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;font-weight:700;border:0;background:var(--pri);color:#fff;margin:6px 6px 6px 0;text-decoration:none}
+.btn.ghost{background:#fff;border:1px solid var(--ink);color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--line);margin-top:24px;border-radius:18px;padding:10px}
+.tabs span{text-align:center;font-size:12px;color:var(--mut);padding:8px}
+.tabs span.on{color:var(--pri);font-weight:700}
+.card{background:#fff;border-radius:18px;padding:16px;margin:12px 0}
+.banner{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--pri-50);margin:12px 0}
+.banner b{color:var(--pri-ink)}
+code{font-size:12px;background:var(--surface);padding:2px 6px;border-radius:6px}
+ul{padding-inline-start:20px}
+</style>
+</head>
+<body>
+  <h1>Roni</h1>
+  <p class="mut">Green customer design contract for the Flutter app. Full interactive 20-screen HTML was the source; tokens and IA below drive <code>BoutiqueColors</code>.</p>
+
+  <div class="swatches">
+    <div class="sw"><i style="background:#0B6B1F"></i><span>pri · primary</span></div>
+    <div class="sw"><i style="background:#ECEEE9"></i><span>bg</span></div>
+    <div class="sw"><i style="background:#F4F5F2"></i><span>surface</span></div>
+    <div class="sw"><i style="background:#14201A"></i><span>ink</span></div>
+    <div class="sw"><i style="background:#0A4A27"></i><span>logo</span></div>
+    <div class="sw"><i style="background:#E7F2E3"></i><span>pri-50</span></div>
+    <div class="sw"><i style="background:#FF7006"></i><span>logo mark</span></div>
+    <div class="sw"><i style="background:#C8323E"></i><span>heart</span></div>
+  </div>
+
+  <a class="btn" href="#">سەرەکی · primary CTA</a>
+  <a class="btn ghost" href="#">ghost</a>
+
+  <div class="banner"><b>یەکەم گەیاندنت بێبەرامبەرە</b> · پارە تەنها لە کاتی گەیاندن</div>
+
+  <div class="card">
+    <b>Bottom tabs (4)</b>
+    <div class="tabs">
+      <span class="on">سەرەکی</span>
+      <span>بەشەکان</span>
+      <span>سەبەتە</span>
+      <span>هەژمار</span>
+    </div>
+    <p class="mut">Auction / Ronix / Gives live under Account → rewards — not as root tabs.</p>
+  </div>
+
+  <div class="card">
+    <b>Flutter mapping</b>
+    <ul>
+      <li><code>BoutiqueColors.dustyPink</code> → <code>#0B6B1F</code> (primary)</li>
+      <li><code>BoutiqueColors.cream / beige</code> → <code>#ECEEE9</code></li>
+      <li><code>BoutiqueColors.softPink</code> → <code>#E7F2E3</code></li>
+      <li><code>BoutiqueColors.surface</code> → <code>#F4F5F2</code></li>
+      <li><code>BoutiqueColors.logo</code> → <code>#0A4A27</code></li>
+    </ul>
+  </div>
+</body>
+</html>
