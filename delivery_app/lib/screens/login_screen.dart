@@ -24,6 +24,17 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (response['status'] == 'success') {
+        final user = response['user'];
+        final role = user is Map ? user['role']?.toString() : null;
+        if (role != 'delivery') {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This app is only for a courier account.'),
+            ),
+          );
+          return;
+        }
         await ApiService.setToken(response['token']);
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
@@ -40,9 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error connecting to server')),
       );
-    }
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

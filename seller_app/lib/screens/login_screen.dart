@@ -56,6 +56,12 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
 
       if (response['status'] == 'success') {
+        final user = response['user'];
+        final role = user is Map ? user['role']?.toString() : null;
+        if (role != 'seller') {
+          _showError('This studio is only for a seller account.');
+          return;
+        }
         await ApiService.setToken(response['token']);
         if (!mounted) return;
         // Only poll for this account's feed once the token is in place.

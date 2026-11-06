@@ -25,6 +25,17 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (response['status'] == 'success') {
+        final user = response['user'];
+        final role = user is Map ? user['role']?.toString() : null;
+        if (role != 'admin') {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This console is only for an admin account.'),
+            ),
+          );
+          return;
+        }
         await ApiService.setToken(response['token']);
         if (!mounted) return;
         // Only poll for this account's feed once the token is in place.
@@ -43,9 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error connecting to server')),
       );
-    }
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
