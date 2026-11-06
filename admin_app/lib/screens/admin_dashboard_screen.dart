@@ -202,7 +202,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1200),
-                        child: _buildCurrentView(),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 320),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) =>
+                              FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.03),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          ),
+                          child: KeyedSubtree(
+                            key: ValueKey(_selectedNavIndex),
+                            child: _buildCurrentView(),
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -35,14 +35,22 @@ class _RoniFadeSlideState extends State<RoniFadeSlide>
     begin: widget.offset,
     end: Offset.zero,
   ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  Timer? _delay;
+  bool _started = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller.value = 1;
+      return;
+    }
     if (widget.delay == Duration.zero) {
       _controller.forward();
     } else {
-      Future<void>.delayed(widget.delay, () {
+      _delay = Timer(widget.delay, () {
         if (mounted) _controller.forward();
       });
     }
@@ -50,6 +58,7 @@ class _RoniFadeSlideState extends State<RoniFadeSlide>
 
   @override
   void dispose() {
+    _delay?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -281,7 +290,18 @@ class _RoniShimmerState extends State<RoniShimmer>
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1100),
-  )..repeat();
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -384,9 +404,7 @@ class RoniProductSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: RoniShimmer(
-                child: ColoredBox(color: soft),
-              ),
+              child: RoniShimmer(child: ColoredBox(color: soft)),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
@@ -418,8 +436,7 @@ class RoniPageRoute<T> extends PageRouteBuilder<T> {
          pageBuilder: (context, animation, secondaryAnimation) =>
              builder(context),
          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-           final reduce =
-               MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+           final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
            if (reduce) return child;
            final curved = CurvedAnimation(
              parent: animation,
@@ -495,11 +512,7 @@ Future<T?> showRoniSheet<T>({
 
 /// HTML `.card:hover` lift - used on product tiles (desktop / web).
 class RoniHoverLift extends StatefulWidget {
-  const RoniHoverLift({
-    super.key,
-    required this.child,
-    this.lift = -3,
-  });
+  const RoniHoverLift({super.key, required this.child, this.lift = -3});
 
   final Widget child;
   final double lift;

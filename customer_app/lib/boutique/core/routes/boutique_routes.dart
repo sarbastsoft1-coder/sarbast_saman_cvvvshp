@@ -295,7 +295,9 @@ class BoutiqueRoutes {
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: isTab ? 1280 : 760),
-              child: SafeArea(top: false, child: buildPage()),
+              child: RoniFadeSlide(
+                child: SafeArea(top: false, child: buildPage()),
+              ),
             ),
           ),
         );

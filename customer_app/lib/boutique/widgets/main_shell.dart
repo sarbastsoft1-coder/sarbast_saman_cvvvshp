@@ -95,9 +95,7 @@ class _BoutiqueMainShellState extends State<BoutiqueMainShell> {
                     width: 200,
                     decoration: BoxDecoration(
                       color: p.surface,
-                      border: BorderDirectional(
-                        end: BorderSide(color: p.line),
-                      ),
+                      border: BorderDirectional(end: BorderSide(color: p.line)),
                     ),
                     child: Column(
                       children: [
@@ -124,26 +122,30 @@ class _BoutiqueMainShellState extends State<BoutiqueMainShell> {
                               horizontal: 12,
                               vertical: 4,
                             ),
-                            child: ListTile(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              selectedTileColor: p.soft,
-                              selectedColor: p.brand2,
-                              selected: index == i,
-                              leading: Icon(
-                                icons[i],
-                                color: index == i ? p.brand2 : p.muted,
-                              ),
-                              title: Text(
-                                labels[i],
-                                style: TextStyle(
-                                  fontFamily: 'Vazirmatn',
-                                  fontSize: 13,
-                                  color: index == i ? p.brand2 : p.fg,
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              child: ListTile(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                selectedTileColor: p.soft,
+                                selectedColor: p.brand2,
+                                selected: index == i,
+                                leading: Icon(
+                                  icons[i],
+                                  color: index == i ? p.brand2 : p.muted,
+                                ),
+                                title: Text(
+                                  labels[i],
+                                  style: TextStyle(
+                                    fontFamily: 'Vazirmatn',
+                                    fontSize: 13,
+                                    color: index == i ? p.brand2 : p.fg,
+                                  ),
+                                ),
+                                onTap: () => nav.switchTab(i),
                               ),
-                              onTap: () => nav.switchTab(i),
                             ),
                           ),
                         const Spacer(),

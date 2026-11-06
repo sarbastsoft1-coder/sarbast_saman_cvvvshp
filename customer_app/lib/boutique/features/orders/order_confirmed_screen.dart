@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/routes/boutique_routes.dart';
 import '../../core/theme/boutique_colors.dart';
 import '../../providers/orders_provider.dart';
+import '../../widgets/roni_motion.dart';
 import '../../widgets/store_components.dart';
 
 /// Post-checkout success — HTML `#placed`.
@@ -20,17 +21,26 @@ class OrderConfirmedScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: p.soft,
-                  shape: BoxShape.circle,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.6, end: 1),
+                duration: const Duration(milliseconds: 520),
+                curve: Curves.easeOutBack,
+                builder: (context, scale, child) => Transform.scale(
+                  scale: scale,
+                  child: child,
                 ),
-                child: Icon(
-                  Icons.check_rounded,
-                  size: 44,
-                  color: p.brand2,
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: p.soft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 44,
+                    color: p.brand2,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

@@ -52,7 +52,9 @@ class _RoniCardState extends State<RoniCard> {
             ? (_pressed ? null : BoutiqueTokens.shadowCard(p))
             : null,
       ),
-      child: widget.child,
+      // ListTile paints its ink on the nearest Material. Without one inside
+      // this decorated box, Flutter reports the splash as invisible.
+      child: Material(type: MaterialType.transparency, child: widget.child),
     );
     if (widget.onTap == null) return content;
     return AnimatedScale(
@@ -130,9 +132,7 @@ class _GoldButtonState extends State<GoldButton> {
                 Icon(
                   widget.icon,
                   size: 18,
-                  color: enabled
-                      ? BoutiqueColors.onGold
-                      : p.onSurfaceVariant,
+                  color: enabled ? BoutiqueColors.onGold : p.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -516,9 +516,9 @@ class RoniSectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: p.fg,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: p.fg),
             ),
           ),
           if (actionLabel != null)
@@ -595,11 +595,7 @@ class RoniSearchField extends StatelessWidget {
           hintText: hint,
           isDense: true,
           hintStyle: TextStyle(color: p.muted),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            size: 22,
-            color: p.muted,
-          ),
+          prefixIcon: Icon(Icons.search_rounded, size: 22, color: p.muted),
           prefixIconConstraints: const BoxConstraints(
             minWidth: 44,
             minHeight: 44,
@@ -684,10 +680,7 @@ class RoniIconButton extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
-              decoration: BoxDecoration(
-                color: p.sale,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: p.sale, shape: BoxShape.circle),
               alignment: Alignment.center,
               child: Text(
                 '$badgeCount',
@@ -852,7 +845,18 @@ class _RoniSkeletonState extends State<RoniSkeleton>
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: BoutiqueTokens.shimmer,
-  )..repeat();
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -878,11 +882,7 @@ class _RoniSkeletonState extends State<RoniSkeleton>
             gradient: LinearGradient(
               begin: Alignment(-1 - 2 * (1 - t), 0),
               end: Alignment(1 - 2 * (1 - t), 0),
-              colors: [
-                p.surfaceSunken,
-                p.line,
-                p.surfaceSunken,
-              ],
+              colors: [p.surfaceSunken, p.line, p.surfaceSunken],
             ),
           ),
         );
@@ -908,11 +908,7 @@ class RoniSkeletonList extends StatelessWidget {
     itemBuilder: (context, index) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RoniSkeleton(
-          width: 64,
-          height: 64,
-          radius: BoutiqueTokens.radiusMd,
-        ),
+        RoniSkeleton(width: 64, height: 64, radius: BoutiqueTokens.radiusMd),
         const SizedBox(width: BoutiqueTokens.lg),
         Expanded(
           child: Column(
@@ -1095,11 +1091,7 @@ class RoniRatingRow extends StatelessWidget {
 
 /// Trust signals — the small reassurance row that sits under a product price.
 class RoniTrustRow extends StatelessWidget {
-  const RoniTrustRow({
-    super.key,
-    required this.items,
-    this.iconSize = 18,
-  });
+  const RoniTrustRow({super.key, required this.items, this.iconSize = 18});
 
   /// Each entry is an icon and a short label, e.g. `(Icons.local_shipping, 'گەیاندنی خێرا')`.
   final List<(IconData, String)> items;
@@ -1115,9 +1107,7 @@ class RoniTrustRow extends StatelessWidget {
             Container(
               width: 1,
               height: 22,
-              margin: const EdgeInsets.symmetric(
-                horizontal: BoutiqueTokens.md,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: BoutiqueTokens.md),
               color: p.line,
             ),
           Expanded(
@@ -1218,9 +1208,7 @@ class RoniAppBar extends StatelessWidget implements PreferredSizeWidget {
       height: preferredSize.height,
       decoration: BoxDecoration(
         color: p.bg,
-        border: showDivider
-            ? Border(bottom: BorderSide(color: p.line))
-            : null,
+        border: showDivider ? Border(bottom: BorderSide(color: p.line)) : null,
       ),
       child: Row(
         children: [

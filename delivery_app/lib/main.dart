@@ -108,6 +108,46 @@ class DeliveryTheme {
           borderSide: const BorderSide(color: terracotta, width: 1.6),
         ),
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _FadeSlidePageTransitions(),
+          TargetPlatform.iOS: _FadeSlidePageTransitions(),
+          TargetPlatform.macOS: _FadeSlidePageTransitions(),
+          TargetPlatform.windows: _FadeSlidePageTransitions(),
+          TargetPlatform.linux: _FadeSlidePageTransitions(),
+          TargetPlatform.fuchsia: _FadeSlidePageTransitions(),
+        },
+      ),
+    );
+  }
+}
+
+class _FadeSlidePageTransitions extends PageTransitionsBuilder {
+  const _FadeSlidePageTransitions();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.04),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
     );
   }
 }

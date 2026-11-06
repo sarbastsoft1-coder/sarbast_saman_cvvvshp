@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart'; // For AdminTheme
 import '../providers/notification_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/admin_animations.dart';
 import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,6 +26,17 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (response['status'] == 'success') {
+        final user = response['user'];
+        final role = user is Map ? user['role']?.toString() : null;
+        if (role != 'admin') {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This console is only for an admin account.'),
+            ),
+          );
+          return;
+        }
         await ApiService.setToken(response['token']);
         if (!mounted) return;
         // Only poll for this account's feed once the token is in place.
@@ -43,9 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error connecting to server')),
       );
-    }
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -56,7 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: Card(
+          child: FadeSlideIn(
+            child: Card(
             margin: const EdgeInsets.all(24),
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -149,6 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+          ),
           ),
         ),
       ),

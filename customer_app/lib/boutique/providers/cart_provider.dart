@@ -64,13 +64,6 @@ class CartProvider extends LocalStoreNotifier {
         }
       }
     }
-    // Demo seed matching HTML cart (2 items) when the store is empty.
-    if (_lines.isEmpty && sampleProducts.length >= 2) {
-      _lines.addAll([
-        CartLine(product: sampleProducts[0], quantity: 1, size: '٢٨ سم'),
-        CartLine(product: sampleProducts[1], quantity: 1),
-      ]);
-    }
   }
   final List<CartLine> _lines = [];
   final Map<int, BoutiqueProduct> _liveProducts = {};
